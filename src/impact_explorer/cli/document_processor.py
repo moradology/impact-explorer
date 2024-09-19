@@ -24,8 +24,6 @@ def generate_chroma_db_name(
 
 
 def parse_arguments() -> argparse.Namespace:
-    print("Debug: Starting parse_arguments()")
-
     parser = argparse.ArgumentParser(description="Document Processor and Embedder")
     parser.add_argument("--input", required=True, help="Input file path or string")
     parser.add_argument(
@@ -39,14 +37,11 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument(
         "--embedding-model",
-        default="all-MiniLM-L6-v2",
+        default="distilbert-base-uncased",
         help="Name of the sentence-transformers model to use for embeddings",
     )
 
-    print("Debug: Parsing known arguments")
     args, remaining = parser.parse_known_args()
-    print(f"Debug: args = {args}")
-    print(f"Debug: remaining = {remaining}")
 
     strategy_class = strategies[args.chunking_strategy]
 
@@ -54,6 +49,7 @@ def parse_arguments() -> argparse.Namespace:
     strategy_parser = argparse.ArgumentParser()
     strategy_class.add_arguments(strategy_parser)
     strategy_args = strategy_parser.parse_args(remaining)
+    strategy_args.embedding_model = args.embedding_model
     chunking_strategy = strategy_class.from_args(strategy_args)
 
     chroma_db_name = generate_chroma_db_name(chunking_strategy, args.embedding_model)

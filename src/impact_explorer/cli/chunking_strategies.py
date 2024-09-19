@@ -2,10 +2,14 @@ import argparse
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List, Optional
+from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
 
 
 @dataclass
 class Chunk:
+    """
+    Represents a chunk of text with start/end indices and metadata.
+    """
     text: str
     start_index: int
     end_index: int
@@ -21,13 +25,6 @@ class ChunkingStrategy(ABC):
     def chunk(self, text: str, **kwargs) -> List[Chunk]:
         """
         Chunk the input text into smaller pieces with metadata.
-
-        Args:
-            text (str): The input text to be chunked.
-            **kwargs: Strategy-specific arguments.
-
-        Returns:
-            List[Chunk]: A list of Chunk objects containing text and metadata.
         """
         pass
 
@@ -35,7 +32,7 @@ class ChunkingStrategy(ABC):
     @abstractmethod
     def add_arguments(cls, parser: argparse.ArgumentParser) -> None:
         """
-        Get the list of required arguments for this strategy.
+        Add required arguments for this strategy.
         """
         pass
 
@@ -43,17 +40,24 @@ class ChunkingStrategy(ABC):
     @abstractmethod
     def from_args(cls, args: argparse.Namespace) -> "ChunkingStrategy":
         """
-        Build an instance of this class with supplied arguments
+        Build an instance of this class with supplied arguments.
         """
         pass
 
 
 class SlidingWindowStrategy(ChunkingStrategy):
-    def __init__(self, chunk_size: int, overlap: int):
+    """
+    Implements sliding window chunking with overlapping text segments.
+    """
+    def __init__(self, chunk_size: int, overlap: int, embedding_model: str):
         self.chunk_size = chunk_size
         self.overlap = overlap
+        self.tokenizer = AutoTokenizer.from_pretrained(embedding_model)
 
     def chunk(self, text: str) -> List[Chunk]:
+        """
+        Chunk text using sliding window strategy.
+        """
         chunks = []
         start = 0
         while start < len(text):
@@ -66,7 +70,7 @@ class SlidingWindowStrategy(ChunkingStrategy):
                     end_index=end,
                     metadata={
                         "length": len(chunk_text),
-                        "tokens": chunk_text.split(),  # Simple tokenization
+                        "tokens": self.tokenizer.tokenize(chunk_text),
                     },
                 )
             )
@@ -74,11 +78,16 @@ class SlidingWindowStrategy(ChunkingStrategy):
         return chunks
 
     def __str__(self) -> str:
-        """Return a string representation suitable for filenames."""
+        """
+        Return a string representation suitable for filenames.
+        """
         return f"sliding-window_size-{self.chunk_size}_overlap-{self.overlap}"
 
     @classmethod
     def add_arguments(cls, parser: argparse.ArgumentParser) -> None:
+        """
+        Add arguments for sliding window strategy.
+        """
         parser.add_argument(
             "--chunk_size",
             type=int,
@@ -95,28 +104,43 @@ class SlidingWindowStrategy(ChunkingStrategy):
     @classmethod
     def from_args(cls, args: argparse.Namespace) -> "ChunkingStrategy":
         """
-        Build an instance of this class with supplied arguments
+        Build an instance with supplied arguments.
         """
-        return cls(chunk_size=args.chunk_size, overlap=args.overlap)
+        return cls(chunk_size=args.chunk_size,
+                   overlap=args.overlap,
+                   embedding_model=args.embedding_model)
 
 
 class SentenceStrategy(ChunkingStrategy):
-    def __init__(self, max_sentences: int):
+    """
+    Implements sentence-based chunking strategy.
+    """
+    def __init__(self, max_sentences: int, embedding_model: str):
         self.max_sentences = max_sentences
+        self.tokenizer = AutoTokenizer.from_pretrained(embedding_model)
+        self.model = AutoModelForTokenClassification.from_pretrained(embedding_model)
+        self.nlp = pipeline('token-classification', model=self.model, tokenizer=self.tokenizer)
 
     def chunk(self, text: str, **kwargs) -> List[Chunk]:
-        max_sentences = kwargs.get("max_sentences", 5)
-        import nltk
-
-        nltk.download("punkt", quiet=True)
-        sentences = nltk.sent_tokenize(text)
+        """
+        Chunk text by grouping sentences.
+        """
+        max_sentences = kwargs.get("max_sentences", self.max_sentences)
+        sentences = self.nlp(text, aggregation_strategy="simple")
+        sentences = [sentence['word'] for sentence in sentences]
 
         chunks = []
+        current_position = 0
+
         for i in range(0, len(sentences), max_sentences):
-            chunk_sentences = sentences[i : i + max_sentences]
+            chunk_sentences = sentences[i: i + max_sentences]
             chunk_text = " ".join(chunk_sentences)
-            start_index = text.index(chunk_sentences[0])
+            start_index = current_position
             end_index = start_index + len(chunk_text)
+            current_position = end_index + 1
+
+            tokens = self.tokenizer.tokenize(chunk_text)
+
             chunks.append(
                 Chunk(
                     text=chunk_text,
@@ -124,18 +148,23 @@ class SentenceStrategy(ChunkingStrategy):
                     end_index=end_index,
                     metadata={
                         "num_sentences": len(chunk_sentences),
-                        "tokens": chunk_text.split(),
+                        "tokens": tokens,
                     },
                 )
             )
         return chunks
 
     def __str__(self) -> str:
-        """Return a string representation suitable for filenames."""
+        """
+        Return a string representation suitable for filenames.
+        """
         return f"sentence_max-{self.max_sentences}"
 
     @classmethod
     def add_arguments(cls, parser: argparse.ArgumentParser) -> None:
+        """
+        Add arguments for sentence-based chunking strategy.
+        """
         parser.add_argument(
             "--max_sentences",
             type=int,
@@ -146,9 +175,10 @@ class SentenceStrategy(ChunkingStrategy):
     @classmethod
     def from_args(cls, args: argparse.Namespace) -> "ChunkingStrategy":
         """
-        Build an instance of this class with supplied arguments
+        Build an instance with supplied arguments.
         """
-        return cls(max_sentences=args.max_sentences)
+        return cls(max_sentences=args.max_sentences,
+                   embedding_model=args.embedding_model)
 
 
 strategies = {"sentence": SentenceStrategy, "sliding-window": SlidingWindowStrategy}
