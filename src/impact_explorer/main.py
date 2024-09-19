@@ -1,12 +1,9 @@
-import os
 import uvicorn
-
+from anthropic_client import lifespan
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
-
-from anthropic_client import lifespan
 from routes import app_routes
 
 app = FastAPI(lifespan=lifespan)
