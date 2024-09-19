@@ -19,8 +19,7 @@ dependencies = [
     "anthropic",
     "jinja2",
     "python-multipart",
-    "ruff",
-    "mypy",
+    "sentence-transformers"
 ]
 
 [project.optional-dependencies]
@@ -30,6 +29,8 @@ dev = [
     "isort",
     "pytest",
     "httpx",
+    "ruff",
+    "mypy",
 ]
 
 [tool.black]
