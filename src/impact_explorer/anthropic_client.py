@@ -6,6 +6,7 @@ from fastapi import FastAPI
 
 anthropic_client = None
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Starting up...")
@@ -15,9 +16,12 @@ async def lifespan(app: FastAPI):
         anthropic_client = AsyncAnthropic(api_key=api_key)
         print("Anthropic client initialized successfully.")
     else:
-        print("Warning: ANTHROPIC_API_KEY not set. The Anthropic client will not be initialized.")
+        print(
+            "Warning: ANTHROPIC_API_KEY not set. The Anthropic client will not be initialized."
+        )
     yield
     print("Shutting down...")
+
 
 async def get_anthropic_client():
     global anthropic_client

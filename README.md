@@ -15,14 +15,23 @@ This project implements a FastAPI server that integrates with Anthropic's Claude
    cd impact-explorer
    ```
 
+2. Setup Python virtual environment
+The following will set up a virtual environment and the development dependencies:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+make install-dev
+```
+
 3. Install dependencies from `pyproject.toml`:
    ```
-   pip install .
+   make install
    ```
 
    If you're developing the project, install with editable mode:
    ```
-   pip install -e .
+   make install-dev
    ```
 
 ## Configuration
@@ -48,7 +57,7 @@ Set your Anthropic API key as an environment variable:
 
 1. Start the FastAPI server:
    ```bash
-   python src/impact_explorer/main.py
+   make run
    ```
 
    The server will start running on `http://localhost:8000`.
@@ -60,7 +69,7 @@ Set your Anthropic API key as an environment variable:
 To run the server in development mode with auto-reload:
 
 ```python
-python src/impact_explorer/main.py
+make run
 ```
 
 ## License

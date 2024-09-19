@@ -19,6 +19,8 @@ dependencies = [
     "anthropic",
     "jinja2",
     "python-multipart",
+    "ruff",
+    "mypy",
 ]
 
 [project.optional-dependencies]
