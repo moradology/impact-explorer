@@ -31,20 +31,45 @@
           keep track of previous questions so a user can build on the previous
           info provided.
         </div>
+        <nav class="topnav">
+          <a class="active" href="#chat" onclick="return show('Page1','Page2');"
+            >Home</a
+          >
+          <a href="#docs" onclick="return show('Page2','Page1');">Docs</a>
+        </nav>
       </header>
-      <div id="chat-window">
-        <div id="messages"></div>
+      <div id="Page1">
+        <div id="chat-window">
+          <div id="messages"></div>
+        </div>
+        <div id="input-container">
+          <input
+            id="user-input"
+            type="text"
+            placeholder="Type your message..."
+            autofocus
+          />
+          <button id="send-btn">Send</button>
+        </div>
       </div>
-      <div id="input-container">
-        <input
-          id="user-input"
-          type="text"
-          placeholder="Type your message..."
-          autofocus
-        />
-        <button id="send-btn">Send</button>
+      <div id="Page2" style="display: none">
+        <h1>Here is a list of all the docs</h1>
+        <ul>
+          <li>this is a list</li>
+          <li>this is a list</li>
+          <li>this is a list</li>
+          <li>this is a list</li>
+        </ul>
       </div>
     </div>
     <script src="/static/chat.js"></script>
   </body>
 </html>
+
+<script>
+  function show(shown, hidden) {
+    document.getElementById(shown).style.display = "block";
+    document.getElementById(hidden).style.display = "none";
+    return false;
+  }
+</script>
