@@ -1,22 +1,24 @@
-from fastapi import APIRouter, Request, Form, Depends
-from fastapi.responses import HTMLResponse, StreamingResponse
-from models import user_contexts, templates
+import json
+
+from anthropic import AsyncAnthropic
+from anthropic_client import get_anthropic_client
+from fastapi import APIRouter, Depends, Form, Request
+from fastapi.responses import StreamingResponse
+from models import templates, user_contexts
 from utils import (
     get_user_session,
     prune_context,
 )
-from anthropic_client import get_anthropic_client
-from anthropic import AsyncAnthropic
-import json
-from fastapi import APIRouter, Request
-
-from models import templates
 
 app_routes = APIRouter()
 
+
 @app_routes.get("/")
 async def root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "message": "Hello, Impact Explorer!"})
+    return templates.TemplateResponse(
+        "index.html", {"request": request, "message": "Hello, Impact Explorer!"}
+    )
+
 
 @app_routes.post("/chat")
 async def chat_to_anthropic(
@@ -57,7 +59,9 @@ async def chat_to_anthropic(
 
                 # Store the original message and AI's response in the context
                 context["messages"].append({"role": "user", "content": message})
-                context["messages"].append({"role": "assistant", "content": full_response})
+                context["messages"].append(
+                    {"role": "assistant", "content": full_response}
+                )
                 context["messages"] = prune_context(context["messages"])
 
                 yield f"data: {json.dumps({'done': True})}\n\n"

@@ -1,14 +1,12 @@
-import os
-import random
-import re
 import uuid
-from fastapi import Request
 from typing import Dict, List
-from models import user_contexts, MAX_CONTEXT_LENGTH
+
+from fastapi import Request
+from models import MAX_CONTEXT_LENGTH, user_contexts
 
 
 def create_system_prompt():
-    prompt = f"""
+    prompt = """
 You are a high level NASA employee with extensive expertise in the organizational structure, project context, best practices and procedures.
 
 """
@@ -46,6 +44,7 @@ Remember, your goal is to accurately present and synthesize the information from
 """
     return prompt.strip()
 
+
 async def get_user_session(request: Request):
     session_id = request.cookies.get("session_id")
     if not session_id or session_id not in user_contexts:
@@ -56,6 +55,7 @@ async def get_user_session(request: Request):
             "system_prompt": system_prompt,
         }
     return session_id
+
 
 def prune_context(context: List[Dict[str, str]]) -> List[Dict[str, str]]:
     if len(context) > MAX_CONTEXT_LENGTH:
