@@ -11,8 +11,8 @@ This project implements a FastAPI server that integrates with Anthropic's Claude
 
 1. Clone this repository:
    ```
-   git clone https://github.com/yourusername/claude-fastapi-server.git
-   cd claude-fastapi-server
+   git clone https://github.com/moradology/impact-explorer.git
+   cd impact-explorer
    ```
 
 3. Install dependencies from `pyproject.toml`:
@@ -48,7 +48,7 @@ Set your Anthropic API key as an environment variable:
 
 1. Start the FastAPI server:
    ```bash
-   python main.py
+   python src/impact_explorer/main.py
    ```
 
    The server will start running on `http://localhost:8000`.
