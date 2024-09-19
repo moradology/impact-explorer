@@ -1,28 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Impact Explorer</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/chat.css">
-</head>
-<body>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/chat.css" />
+  </head>
+  <body>
+    <!-- <nav class="topnav">
+      <a class="active" href="#home" onclick="return show('chat','docs');"
+        >Home</a
+      >
+      <a href="#docs" onclick="return show('docs','chat');">News</a>
+    </nav> -->
     <div id="chat-container">
-        <header>
-            <div class="logo-container">
-                <img src="/static/logo.png" alt="Impact Logo" id="logo">
-            </div>
-            <h1>Impact Explorer</h1>
-        </header>
-        <div id="chat-window">
-            <div id="messages"></div>
+      <header>
+        <div class="logo-container">
+          <img src="/static/impactlogo.png" alt="Impact Logo" id="logo" />
         </div>
-        <div id="input-container">
-            <input id="user-input" type="text" placeholder="Type your message..." autofocus>
-            <button id="send-btn">Send</button>
+        <h1>Impact Explorer</h1>
+        <div style="position: absolute; left: 480px; top: 40px; right: 120px">
+          This is a chatbot to help new IMPACT members get a grasp on the
+          project as a whole. Type a question into the text box and allow a few
+          seconds for the the bot to scan for information. The response should
+          help guide a user to the information they need. The chat should also
+          keep track of previous questions so a user can build on the previous
+          info provided.
         </div>
+      </header>
+      <div id="chat-window">
+        <div id="messages"></div>
+      </div>
+      <div id="input-container">
+        <input
+          id="user-input"
+          type="text"
+          placeholder="Type your message..."
+          autofocus
+        />
+        <button id="send-btn">Send</button>
+      </div>
     </div>
     <script src="/static/chat.js"></script>
-</body>
+  </body>
 </html>
