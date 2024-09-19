@@ -6,7 +6,7 @@
 	run
 
 install-dev: install
-	pip install -e .
+	pip install -e ".[dev]"
 
 install:
 	pip install --upgrade pip
