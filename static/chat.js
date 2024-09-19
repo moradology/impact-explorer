@@ -13,33 +13,6 @@ userInput.addEventListener('keydown', (event) => {
 });
 
 async function initializeChat() {
-    try {
-        const response = await fetch('/new-context', { method: 'POST' });
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        
-        let formattedMessage = '';
-        if (Array.isArray(data.message)) {
-            formattedMessage = data.message.map((line, index) => {
-                if (index === 0 && data.disclaimer_url) {
-                    return line.replace(
-                        "terms and conditions",
-                        `<a href="${data.disclaimer_url}" target="_blank">terms and conditions</a>`
-                    );
-                }
-                return line;
-            }).join('<br>');
-        } else {
-            formattedMessage = data.message;
-        }
-        
-        addMessage('system', formattedMessage, true);
-    } catch (error) {
-        console.error('Error:', error);
-        addMessage('error', "Error: Unable to start a new chat session.");
-    }
     userInput.focus();
 }
 
