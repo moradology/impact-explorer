@@ -19,7 +19,8 @@ dependencies = [
     "anthropic",
     "jinja2",
     "python-multipart",
-    "sentence-transformers"
+    "sentence-transformers",
+    "chromadb",
 ]
 
 [project.optional-dependencies]
