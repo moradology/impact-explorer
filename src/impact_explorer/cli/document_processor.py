@@ -5,9 +5,8 @@ import sys
 from typing import List
 
 import chromadb
-from sentence_transformers import SentenceTransformer
-
 from chunking_strategies import Chunk, ChunkingStrategy, strategies
+from sentence_transformers import SentenceTransformer
 from utils import print_chroma_stats, print_model_help
 
 
@@ -28,9 +27,9 @@ def generate_chroma_db_name(
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Document Processor and Embedder")
     parser.add_argument(
-        '--model-help',
-        action='store_true',
-        help='Display a summary of pretrained models and their trade-offs'
+        "--model-help",
+        action="store_true",
+        help="Display a summary of pretrained models and their trade-offs",
     )
     temp_args, _ = parser.parse_known_args()
 
@@ -119,18 +118,20 @@ def add_to_chroma(
     collection_name: str,
     chunks: List[Chunk],
     embeddings: List[List[float]],
-    batch_size: int = 200
+    batch_size: int = 200,
 ) -> None:
     collection = client.get_or_create_collection(collection_name)
 
     valid_chunks_embeddings = [
-        (chunk, embedding) for chunk, embedding in zip(chunks, embeddings) if len(embedding) > 0
+        (chunk, embedding)
+        for chunk, embedding in zip(chunks, embeddings)
+        if len(embedding) > 0
     ]
     if not valid_chunks_embeddings:
         raise ValueError("No valid chunks or embeddings to add to database.")
 
     for i in range(0, len(valid_chunks_embeddings), batch_size):
-        batch = valid_chunks_embeddings[i:i + batch_size]
+        batch = valid_chunks_embeddings[i : i + batch_size]
         chunk_batch = [chunk.text for chunk, _ in batch]
         embedding_batch = [embedding for _, embedding in batch]
         metadata_batch = [

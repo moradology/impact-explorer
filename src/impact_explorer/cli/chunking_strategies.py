@@ -2,14 +2,17 @@ import argparse
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List, Optional
-from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
+
+from transformers import AutoTokenizer
 from utils import load_spacy_model
+
 
 @dataclass
 class Chunk:
     """
     Represents a chunk of text with start/end indices and metadata.
     """
+
     text: str
     start_index: int
     end_index: int
@@ -49,6 +52,7 @@ class SlidingWindowStrategy(ChunkingStrategy):
     """
     Implements sliding window chunking with overlapping text segments.
     """
+
     def __init__(self, chunk_size: int, overlap: int):
         self.chunk_size = chunk_size
         self.overlap = overlap
@@ -102,19 +106,18 @@ class SlidingWindowStrategy(ChunkingStrategy):
         """
         Build an instance with supplied arguments.
         """
-        return cls(chunk_size=args.chunk_size,
-                   overlap=args.overlap)
+        return cls(chunk_size=args.chunk_size, overlap=args.overlap)
 
 
 class SentenceStrategy(ChunkingStrategy):
     """
     Implements sentence-based chunking strategy.
     """
+
     def __init__(self, max_sentences: int, overlap: int):
         self.max_sentences = max_sentences
         self.overlap = overlap
         self.nlp = load_spacy_model()
-
 
     def chunk(self, text: str) -> List[Chunk]:
         """
@@ -129,7 +132,7 @@ class SentenceStrategy(ChunkingStrategy):
 
         i = 0
         while i < len(sentences):
-            chunk_sentences = sentences[i: i + max_sentences]
+            chunk_sentences = sentences[i : i + max_sentences]
             # Combine sentences into chunk text
             chunk_text = " ".join(chunk_sentences)
             start_index = current_position
@@ -179,8 +182,8 @@ class SentenceStrategy(ChunkingStrategy):
         """
         Build an instance with supplied arguments.
         """
-        return cls(max_sentences=args.max_sentences,
-                   overlap=args.overlap)
+        return cls(max_sentences=args.max_sentences, overlap=args.overlap)
+
 
 class TokenTextSplitterStrategy:
     """
@@ -188,6 +191,7 @@ class TokenTextSplitterStrategy:
 
     Currently just busted as hell. TODO: fix it
     """
+
     def __init__(self, max_tokens: int, overlap: int, embedding_model: str):
         """
         Initializes TokenTextSplitter with max token count and overlap.
@@ -214,17 +218,16 @@ class TokenTextSplitterStrategy:
         while start < len(tokens):
             end = min(start + self.max_tokens, len(tokens))
             token_chunk = tokens[start:end]
-            chunk_text = self.tokenizer.decode(token_chunk, skip_special_tokens=True, clean_up_tokenization_spaces=True)
+            chunk_text = self.tokenizer.decode(
+                token_chunk, skip_special_tokens=True, clean_up_tokenization_spaces=True
+            )
 
             chunks.append(
                 Chunk(
                     text=chunk_text,
                     start_index=start,
                     end_index=end,
-                    metadata={
-                        "length": len(chunk_text),
-                        "tokens": token_chunk
-                    },
+                    metadata={"length": len(chunk_text), "tokens": token_chunk},
                 )
             )
             # Move start forward by max_tokens minus overlap to create overlap
@@ -261,9 +264,12 @@ class TokenTextSplitterStrategy:
         """
         Build an instance with supplied arguments.
         """
-        return cls(max_tokens=args.max_tokens,
-                   overlap=args.overlap,
-                   embedding_model=args.embedding_model)
+        return cls(
+            max_tokens=args.max_tokens,
+            overlap=args.overlap,
+            embedding_model=args.embedding_model,
+        )
+
 
 strategies = {
     "sentence": SentenceStrategy,

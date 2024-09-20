@@ -1,5 +1,6 @@
-import chromadb
 import subprocess
+
+import chromadb
 import spacy
 
 
