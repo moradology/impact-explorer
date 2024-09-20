@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 import chromadb
@@ -104,3 +105,10 @@ def load_spacy_model():
     # this means up to 2gb in mem. or like 1.5 moby dicks
     nlp.max_length = 2000000
     return nlp
+
+
+def generate_doc_id(input_path: str) -> str:
+    document_name = os.path.basename(input_path).replace(".", "-")
+    sanitized_name = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in document_name)
+
+    return sanitized_name

@@ -22,6 +22,9 @@ dependencies = [
     "sentence-transformers",
     "chromadb",
     "spacy",
+    "PyPDF2",
+    "python-docx",
+    "markdown2",
 ]
 
 [project.optional-dependencies]
