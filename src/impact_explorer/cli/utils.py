@@ -109,6 +109,8 @@ def load_spacy_model():
 
 def generate_doc_id(input_path: str) -> str:
     document_name = os.path.basename(input_path).replace(".", "-")
-    sanitized_name = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in document_name)
+    sanitized_name = "".join(
+        c if c.isalnum() or c in ("-", "_") else "_" for c in document_name
+    )
 
     return sanitized_name

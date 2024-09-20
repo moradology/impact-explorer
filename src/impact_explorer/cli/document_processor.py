@@ -5,12 +5,11 @@ import sys
 from typing import List
 
 import chromadb
-from sentence_transformers import SentenceTransformer
-import PyPDF2
 import docx
 import markdown2
-
+import PyPDF2
 from chunking_strategies import Chunk, ChunkingStrategy, strategies
+from sentence_transformers import SentenceTransformer
 from utils import generate_doc_id, print_chroma_stats, print_model_help
 
 
@@ -92,7 +91,7 @@ def parse_arguments() -> argparse.Namespace:
         chunking_strategy=chunking_strategy,
         embedding_model=args.embedding_model,
         input_file=input_file,
-        input_dir=input_dir
+        input_dir=input_dir,
     )
 
     return final_args
@@ -200,11 +199,12 @@ def add_to_chroma(
 
 
 def process_document(
-        input_file: str,
-        chunking_strategy: str,
-        embedding_model: str,
-        chroma_db_name: str,
-        output_dir: str) -> None:
+    input_file: str,
+    chunking_strategy: str,
+    embedding_model: str,
+    chroma_db_name: str,
+    output_dir: str,
+) -> None:
     text = load_document(input_file)
     chunking_strategy = chunking_strategy
     chunks = chunking_strategy.chunk(text)
@@ -241,11 +241,7 @@ def main():
     for file in files:
         print(f"Processing file: {file}")
         process_document(
-            file,
-            chunking_strategy,
-            embedding_model,
-            chroma_db_name,
-            output_dir
+            file, chunking_strategy, embedding_model, chroma_db_name, output_dir
         )
 
 
