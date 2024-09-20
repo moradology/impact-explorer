@@ -213,7 +213,8 @@ def process_document(
     client = initialize_chroma(output_dir, chroma_db_name)
     doc_id = generate_doc_id(input_file)
     add_to_chroma(client, "documents", chunks, embeddings, doc_id)
-    print_chroma_stats(client, "documents")
+    # TODO: re-enable this
+    #print_chroma_stats(client, "documents")
 
     print(
         f"Processed document using chunking={chunking_strategy}; "

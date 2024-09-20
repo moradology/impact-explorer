@@ -59,7 +59,8 @@ async function sendMessage() {
                             messagesContainer.appendChild(botElement);
                         }
                         botMessage += data.delta;
-                        botElement.textContent = botMessage;
+                        botElement.innerHTML = botMessage.replace(/\n/g, '<br>')
+
                         scrollToBottom();
                     } else if (data.done) {
                         break;
