@@ -49,10 +49,9 @@ class SlidingWindowStrategy(ChunkingStrategy):
     """
     Implements sliding window chunking with overlapping text segments.
     """
-    def __init__(self, chunk_size: int, overlap: int, embedding_model: str):
+    def __init__(self, chunk_size: int, overlap: int):
         self.chunk_size = chunk_size
         self.overlap = overlap
-        self.tokenizer = AutoTokenizer.from_pretrained(embedding_model)
 
     def chunk(self, text: str) -> List[Chunk]:
         """
@@ -68,10 +67,7 @@ class SlidingWindowStrategy(ChunkingStrategy):
                     text=chunk_text,
                     start_index=start,
                     end_index=end,
-                    metadata={
-                        "length": len(chunk_text),
-                        "tokens": self.tokenizer.tokenize(chunk_text),
-                    },
+                    metadata={"window_length": len(chunk_text)},
                 )
             )
             start += self.chunk_size - self.overlap
@@ -107,18 +103,16 @@ class SlidingWindowStrategy(ChunkingStrategy):
         Build an instance with supplied arguments.
         """
         return cls(chunk_size=args.chunk_size,
-                   overlap=args.overlap,
-                   embedding_model=args.embedding_model)
+                   overlap=args.overlap)
 
 
 class SentenceStrategy(ChunkingStrategy):
     """
     Implements sentence-based chunking strategy.
     """
-    def __init__(self, max_sentences: int, overlap: int, embedding_model: str):
+    def __init__(self, max_sentences: int, overlap: int):
         self.max_sentences = max_sentences
         self.overlap = overlap
-        self.tokenizer = AutoTokenizer.from_pretrained(embedding_model)
         self.nlp = load_spacy_model()
 
 
@@ -147,10 +141,7 @@ class SentenceStrategy(ChunkingStrategy):
                     text=chunk_text,
                     start_index=start_index,
                     end_index=end_index,
-                    metadata={
-                        "num_sentences": len(chunk_sentences),
-                        "tokens": self.tokenizer.tokenize(chunk_text)
-                    },
+                    metadata={"num_sentences": len(chunk_sentences)},
                 )
             )
 
@@ -189,8 +180,7 @@ class SentenceStrategy(ChunkingStrategy):
         Build an instance with supplied arguments.
         """
         return cls(max_sentences=args.max_sentences,
-                   overlap=args.overlap,
-                   embedding_model=args.embedding_model)
+                   overlap=args.overlap)
 
 class TokenTextSplitterStrategy:
     """

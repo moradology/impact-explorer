@@ -3,6 +3,48 @@ import subprocess
 import spacy
 
 
+def print_model_help():
+    """
+    Prints a high-level description of various SentenceTransformer models and their trade-offs.
+    """
+    help_text = """
+Available Pretrained Models and Trade-offs:
+-------------------------------------------
+1. all-MiniLM-L6-v2
+   - Size: 66M params | Max tokens: 256 | Speed: Very fast | Accuracy: Moderate
+   - Use Case: Large-scale, real-time search with moderate accuracy.
+
+2. all-MiniLM-L12-v2
+   - Size: 110M params | Max tokens: 256 | Speed: Fast | Accuracy: Better than L6
+   - Use Case: Fast general-purpose search with good accuracy.
+
+3. paraphrase-MiniLM-L6-v2
+   - Size: 66M params | Max tokens: 256 | Speed: Very fast | Accuracy: Moderate
+   - Use Case: Paraphrase detection, sentence similarity.
+
+4. paraphrase-MpNet-base-v2
+   - Size: 110M params | Max tokens: 256 | Speed: Fast | Accuracy: High
+   - Use Case: High-accuracy sentence similarity, semantic search.
+
+5. multi-qa-MiniLM-L6-cos-v1
+   - Size: 66M params | Max tokens: 256 | Speed: Very fast | Accuracy: QA-optimized
+   - Use Case: Question-answering, fast multi-lingual search.
+
+6. all-distilroberta-v1
+   - Size: 82M params | Max tokens: 512 | Speed: Moderate | Accuracy: High
+   - Use Case: Longer text, nuanced comparisons.
+
+7. msmarco-distilbert-base-v4
+   - Size: 66M params | Max tokens: 512 | Speed: Fast | Accuracy: Retrieval-optimized
+   - Use Case: Passage retrieval, document search.
+
+8. roberta-large-nli-stsb-mean-tokens
+   - Size: 355M params | Max tokens: 512 | Speed: Slow | Accuracy: Very high
+   - Use Case: High-accuracy semantic search, small-scale.
+"""
+    print(help_text)
+
+
 def print_chroma_stats(client: chromadb.Client, collection_name: str) -> None:
     collection = client.get_collection(collection_name)
 

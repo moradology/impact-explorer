@@ -1,12 +1,14 @@
 import argparse
 import os
 import re
+import sys
 from typing import List
 
 import chromadb
-from chunking_strategies import Chunk, ChunkingStrategy, strategies
 from sentence_transformers import SentenceTransformer
-from utils import print_chroma_stats
+
+from chunking_strategies import Chunk, ChunkingStrategy, strategies
+from utils import print_chroma_stats, print_model_help
 
 
 def sanitize_filename(name: str) -> str:
@@ -25,6 +27,17 @@ def generate_chroma_db_name(
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Document Processor and Embedder")
+    parser.add_argument(
+        '--model-help',
+        action='store_true',
+        help='Display a summary of pretrained models and their trade-offs'
+    )
+    temp_args, _ = parser.parse_known_args()
+
+    if temp_args.model_help:
+        print_model_help()
+        sys.exit(0)
+
     parser.add_argument("--input", required=True, help="Input file path or string")
     parser.add_argument(
         "--output-dir", default="./", help="Output directory for ChromaDB"
@@ -37,7 +50,7 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument(
         "--embedding-model",
-        default="distilbert-base-uncased",
+        default="all-distilroberta-v1",
         help="Name of the sentence-transformers model to use for embeddings",
     )
 
@@ -82,7 +95,16 @@ def load_document(input_path: str) -> str:
 
 def generate_embeddings(chunks: List[Chunk], model_name: str) -> List[List[float]]:
     model = SentenceTransformer(model_name)
-    return model.encode([chunk.text for chunk in chunks]).tolist()
+
+    texts = [chunk.text for chunk in chunks if chunk.text.strip()]
+    if not texts:
+        raise ValueError("No valid texts to generate embeddings for.")
+
+    embeddings = model.encode(texts).tolist()
+    if len(embeddings) != len(texts):
+        raise ValueError("Mismatch between number of texts and embeddings.")
+
+    return embeddings
 
 
 def initialize_chroma(output_dir: str, chroma_db_name: str) -> chromadb.Client:
@@ -97,48 +119,55 @@ def add_to_chroma(
     collection_name: str,
     chunks: List[Chunk],
     embeddings: List[List[float]],
+    batch_size: int = 200
 ) -> None:
     collection = client.get_or_create_collection(collection_name)
-    for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
-        # Convert metadata to appropriate types
-        metadata = {
-            **{
-                k: str(v) if isinstance(v, list) else v
-                for k, v in chunk.metadata.items()
-            },
-            "start_index": chunk.start_index,
-            "end_index": chunk.end_index,
-        }
+
+    valid_chunks_embeddings = [
+        (chunk, embedding) for chunk, embedding in zip(chunks, embeddings) if len(embedding) > 0
+    ]
+    if not valid_chunks_embeddings:
+        raise ValueError("No valid chunks or embeddings to add to database.")
+
+    for i in range(0, len(valid_chunks_embeddings), batch_size):
+        batch = valid_chunks_embeddings[i:i + batch_size]
+        chunk_batch = [chunk.text for chunk, _ in batch]
+        embedding_batch = [embedding for _, embedding in batch]
+        metadata_batch = [
+            {
+                **{
+                    k: str(v) if isinstance(v, list) else v
+                    for k, v in chunk.metadata.items()
+                },
+                "start_index": chunk.start_index,
+                "end_index": chunk.end_index,
+            }
+            for chunk, _ in batch
+        ]
+        ids_batch = [f"doc_{j}" for j in range(i, i + len(batch))]
+
         collection.add(
-            documents=[chunk.text],
-            embeddings=[embedding],
-            metadatas=[metadata],
-            ids=[f"doc_{i}"],
+            documents=chunk_batch,
+            embeddings=embedding_batch,
+            metadatas=metadata_batch,
+            ids=ids_batch,
         )
+
+        print(f"Added batch {i//batch_size + 1}: {len(batch)} documents to ChromaDB")
 
 
 def process_document(args: argparse.Namespace) -> None:
-    # Load document
     text = load_document(args.input)
-
-    # Get chunking strategy
     chunking_strategy = args.chunking_strategy
-
-    # Chunk text
     chunks = chunking_strategy.chunk(text)
-
-    # Generate embeddings
     embeddings = generate_embeddings(chunks, args.embedding_model)
 
-    # Initialize ChromaDB
     client = initialize_chroma(args.output_dir, args.chroma_db_name)
-
-    # Add to ChromaDB
     add_to_chroma(client, "documents", chunks, embeddings)
     print_chroma_stats(client, "documents")
 
     print(
-        f"Processed document using {chunking_strategy} and stored in {args.output_dir} with name {args.chroma_db_name}"
+        f"Processed document using chunking={chunking_strategy}; model={args.embedding_model} and stored in {args.output_dir} with name {args.chroma_db_name}"
     )
 
 
