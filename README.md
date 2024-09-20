@@ -2,6 +2,9 @@
 
 This project implements a FastAPI server that integrates with Anthropic's Claude API to provide a chat interface enhanced with Retrieval-Augmented Generation (RAG) capabilities. It includes both a backend server and a simple frontend for interacting with Claude. Additionally, it features a powerful CLI tool for document processing and embedding generation using ChromaDB.
 
+<img width="1572" alt="image" src="https://github.com/user-attachments/assets/d883726b-6515-4382-8e8b-e9b845660c2b">
+ 
+
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
