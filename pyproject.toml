@@ -21,6 +21,7 @@ dependencies = [
     "python-multipart",
     "sentence-transformers",
     "chromadb",
+    "spacy",
 ]
 
 [project.optional-dependencies]

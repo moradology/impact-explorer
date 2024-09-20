@@ -1,4 +1,6 @@
 import chromadb
+import subprocess
+import spacy
 
 
 def print_chroma_stats(client: chromadb.Client, collection_name: str) -> None:
@@ -46,3 +48,16 @@ def print_chroma_stats(client: chromadb.Client, collection_name: str) -> None:
         print(f"  {'Average length:':<20} {avg_length:.2f} characters")
         print(f"  {'Shortest document:':<20} {min(doc_lengths)} characters")
         print(f"  {'Longest document:':<20} {max(doc_lengths)} characters")
+
+
+def load_spacy_model():
+    """Load en_core_web_sm, installing as necessary"""
+    try:
+        nlp = spacy.load("en_core_web_sm")
+    except OSError:
+        print("Model 'en_core_web_sm' not found. Downloading now...")
+        subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
+        nlp = spacy.load("en_core_web_sm")
+    # this means up to 2gb in mem. or like 1.5 moby dicks
+    nlp.max_length = 2000000
+    return nlp
