@@ -1,16 +1,27 @@
 import json
+import os
 
+import chromadb
 from anthropic import AsyncAnthropic
 from anthropic_client import get_anthropic_client
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import StreamingResponse
 from models import templates, user_contexts
+from sentence_transformers import SentenceTransformer
 from utils import (
     get_user_session,
     prune_context,
 )
 
 app_routes = APIRouter()
+
+CHROMA_PATH = os.getenv("CHROMA_PATH")
+CHROMA_COLLECTION = os.getenv("CHROMA_COLLECTION", "documents")
+chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
+collection = chroma_client.get_collection(name="documents")
+
+EMBEDDING_NAME = os.getenv("EMBEDDING_MODEL", "all-distilroberta-v1")
+embedding_model = SentenceTransformer(EMBEDDING_NAME)
 
 
 @app_routes.get("/")
@@ -28,16 +39,21 @@ async def chat_to_anthropic(
 ):
     context = user_contexts[session]
 
-    # Instead of injecting the reminder into the user's message, we'll use it as a system message
-    system_message = f"{context['system_prompt']}"
+    query_embedding = embedding_model.encode(message)
+    query_results = collection.query(
+        query_embeddings=[query_embedding.tolist()], n_results=5
+    )
+    retrieved_docs = query_results["documents"][0]
+    context_text = "\n\n".join(retrieved_docs)
+
+    system_message = (
+        f"{context['system_prompt']}\n\nRelevant Information:\n{context_text}"
+    )
 
     # Prepare the messages for the API call
     api_messages = []
     for msg in context["messages"]:
-        if msg["role"] == "user":
-            api_messages.append({"role": "user", "content": msg["content"]})
-        elif msg["role"] == "assistant":
-            api_messages.append({"role": "assistant", "content": msg["content"]})
+        api_messages.append({"role": msg["role"], "content": msg["content"]})
 
     # Add the new user message
     api_messages.append({"role": "user", "content": message})
