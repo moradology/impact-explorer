@@ -74,6 +74,7 @@ def print_chroma_stats(client: chromadb.Client, collection_name: str) -> None:
 
         # Sample some items
         sample_size = min(3, count)
+        # TODO: fix the id here or just use the `peek` method
         sample = collection.get(ids=[f"doc_{i}" for i in range(sample_size)])
 
         print(f"\n🔍 Peek at {sample_size} documents:")
